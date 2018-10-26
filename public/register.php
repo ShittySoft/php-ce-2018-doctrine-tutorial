@@ -2,27 +2,24 @@
 
 namespace Application;
 
-use Authentication\Entity\User;
+use Authentication\Aggregate\User;
 use Authentication\Value\ClearTextPassword;
 use Authentication\Value\EmailAddress;
+use Infrastructure\Authentication\ReadModel\DoesEmailExistInRepository;
 use Infrastructure\Authentication\Repository\JsonFileUsers;
+use Infrastructure\Authentication\Service\SendSuccessfulRegistrationToStderr;
 
 require_once __DIR__ . '/../vendor/autoload.php';
 
-$existingUsers = new JsonFileUsers(__DIR__ . '/../data/users.json');
-$email         = EmailAddress::fromString($_POST['emailAddress']);
-$password      = ClearTextPassword::fromString($_POST['password']);
+$users = new JsonFileUsers(__DIR__ . '/../data/users.json');
+$email = EmailAddress::fromString($_POST['emailAddress']);
 
-if ($existingUsers->isRegistered($email)) {
-    echo 'Already registered';
-
-    return;
-}
-
-$existingUsers->store(new User($email, $password->makeHash()));
-
-// Maybe notification system? Later...
-error_log(sprintf('User %s registered', $email->toString()));
+$users->store(User::register(
+    $email,
+    ClearTextPassword::fromString($_POST['password']),
+    new DoesEmailExistInRepository($users),
+    new SendSuccessfulRegistrationToStderr()
+));
 
 echo 'Registered';
 

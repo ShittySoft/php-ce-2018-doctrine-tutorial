@@ -33,7 +33,7 @@ final class ClearTextPassword
         );
     }
 
-    public function verify(PasswordHash $hash) : bool
+    public function matches(PasswordHash $hash) : bool
     {
         return password_verify($this->password, $hash->toString());
     }
