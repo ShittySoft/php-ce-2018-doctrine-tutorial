@@ -1,11 +1,23 @@
 <?php
 
-// 1. fetch user by email
-// 2. compare user password hash against given password
-// 3. is the user banned? (optional)
-// 4. log login (optional)
-// 5. store user identifier into the session
+$existingUsers = json_decode(
+    file_get_contents(__DIR__ . '/../data/users.json'),
+    true
+);
 
-// discuss: should the fetching by password happen at database level?
-//          Should it happen inside the entity?
-//          Or in a service?
+$email = $_POST['emailAddress'];
+$password = $_POST['password'];
+
+if (! isset($existingUsers[$email])) {
+    echo 'Nope';
+
+    return;
+}
+
+if (! password_verify($password, $existingUsers[$email])) {
+    echo 'Nope';
+
+    return;
+}
+
+echo 'OK';
